@@ -1,0 +1,1004 @@
+{
+  "name": "AI-Powered Virtual Receptionist for Sowjanya Dental Hospitals",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d9b88dd6-004f-44a2-8bd1-f79e7980cc67",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1120,
+        -1152
+      ],
+      "id": "595051cf-9af5-4593-9ff5-c3ac0f6f770b",
+      "name": "Webhook",
+      "webhookId": "d9b88dd6-004f-44a2-8bd1-f79e7980cc67",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8ec2f8c0-4d72-4a78-a375-8310cab4237c",
+              "name": "patientName",
+              "value": "={{ $json.body.name }}",
+              "type": "string"
+            },
+            {
+              "id": "508f3b04-0cd2-40d5-a593-40e28b2d47b2",
+              "name": "phone",
+              "value": "={{ $json.body.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "1b05e6f6-bee1-47df-b907-b335bd3b4d79",
+              "name": "intent",
+              "value": "={{ $json.body.intent }}",
+              "type": "string"
+            },
+            {
+              "id": "78249e4f-23e8-4a6d-aa7d-050fa410c4a6",
+              "name": "appointmentDate",
+              "value": "={{ $json.body.date }}",
+              "type": "string"
+            },
+            {
+              "id": "fa9505b7-4bbe-48c8-8239-d91b3d9ad149",
+              "name": "appointmentTime",
+              "value": "={{ $json.body.time }}",
+              "type": "string"
+            },
+            {
+              "id": "2b511a0e-4fd4-4d4d-a2b4-8012372c2e4b",
+              "name": "treatment",
+              "value": "={{ $json.body.treatment }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        -1152
+      ],
+      "id": "73fb672d-34f0-4bd7-8195-5e242f689649",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  !$json.isFutureAppointment\n  ? '{\"status\":\"rejected\",\"message\":\"Please choose an appointment time at least 30 minutes from now.\"}'\n    : !$json.isBusinessHour\n    ? '{\"status\":\"rejected\",\"message\":\"Appointments are available only between 9 AM and 9 PM.\"}'\n    : !$json.isTreatmentValid\n    ? '{\"status\":\"pending_review\",\"message\":\"Your treatment request requires manual review.\"}'\n    : '{\"status\":\"rejected\",\"message\":\"Invalid appointment details.\"}'\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        48,
+        -928
+      ],
+      "id": "c4c04cae-2610-4c35-864e-982d43d42949",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "7e267787ed5f11c453f60acb9392b59ec119d0a65f766489271f75e0a131bbd2@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Sowjanya Dental Appointments"
+        },
+        "start": "={{ DateTime.fromISO(\n  $('Code in JavaScript').item.json.appointmentDate + 'T' +\n  $('Code in JavaScript').item.json.appointmentTime\n).toISO() }}",
+        "end": "={{\n  DateTime.fromISO(\n    $('Code in JavaScript').item.json.appointmentDate + 'T' +\n    $('Code in JavaScript').item.json.appointmentTime\n  )\n  .plus({\n    minutes: $('Code in JavaScript').item.json.appointmentDurationMinutes\n  })\n  .toISO()\n}}",
+        "additionalFields": {
+          "description": "={{  'Appointment ID: ' + $('Code in JavaScript').item.json.appointmentId +  '\\nPatient: ' + $('Code in JavaScript').item.json.patientName +  '\\nPhone: ' + $('Code in JavaScript').item.json.phone +  '\\nReason: ' + $('Code in JavaScript').item.json.treatment}}",
+          "summary": "={{ $('Code in JavaScript').item.json.treatment + ' - ' + $('Code in JavaScript').item.json.patientName }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        496,
+        -1024
+      ],
+      "id": "b431774c-c539-4d36-8b9c-b86a16453804",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "TX6qcl8FF8ZdtAXN",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE",
+          "mode": "list",
+          "cachedResultName": "Sowjanya Dental CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead ID": "={{ $('Code in JavaScript').item.json.appointmentId }}",
+            "Date Created": "={{ $now.toISO() }}",
+            "Patient Name": "={{ $('Code in JavaScript').item.json.patientName }}",
+            "Phone Number": "={{ $('Code in JavaScript').item.json.phone }}",
+            "Treatment": "={{ $('Code in JavaScript').item.json.treatment }}",
+            "Appointment Date": "={{ $('Code in JavaScript').item.json.appointmentDate }}",
+            "Appointment Time": "={{ $('Code in JavaScript').item.json.appointmentTime }}",
+            "Status": "Booked",
+            "Notes": "Booked via AI Receptionist",
+            "Google Calendar Event ID": "={{ $('Create an event').item.json.id }}",
+            "WhatsApp Confirmation Sent": "Pending Setup",
+            "Payment Status": "Not Requested",
+            "Last Updated": "={{ $now.toISO() }}",
+            "WhatsApp Reminder Sent": "No",
+            "Booking Confirmed At": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Lead ID",
+              "displayName": "Lead ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Created",
+              "displayName": "Date Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Treatment",
+              "displayName": "Treatment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Date",
+              "displayName": "Appointment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Time",
+              "displayName": "Appointment Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Follow Up Required",
+              "displayName": "Follow Up Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Google Calendar Event ID",
+              "displayName": "Google Calendar Event ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "WhatsApp Confirmation Sent",
+              "displayName": "WhatsApp Confirmation Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "WhatsApp Reminder Sent",
+              "displayName": "WhatsApp Reminder Sent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment Status",
+              "displayName": "Payment Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Payment Link",
+              "displayName": "Payment Link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last Updated",
+              "displayName": "Last Updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Booking Confirmed At",
+              "displayName": "Booking Confirmed At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        -1024
+      ],
+      "id": "f2d7d7f3-f5e3-4cfa-8ac8-42a06fbb7908",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rRft5XSZxxuLfj4l",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const name = ($json.patientName || \"\").trim();\nconst phone = ($json.phone || \"\").replace(/\\D/g, \"\");\nconst date = $json.appointmentDate;\nconst time = $json.appointmentTime;\nlet treatment = ($json.treatment || \"\").trim();\n\n\n\n// Normalize common treatment variations sent by Vapi\nconst treatmentMap = {\n  \"general checkup\": \"General Dental Checkup\",\n  \"general dental checkup\": \"General Dental Checkup\",\n  \"checkup\": \"General Dental Checkup\",\n\n  \"tooth pain\": \"Tooth Pain / Sensitivity\",\n  \"toothache\": \"Tooth Pain / Sensitivity\",\n  \"sensitivity\": \"Tooth Pain / Sensitivity\",\n  \"tooth pain / sensitivity\": \"Tooth Pain / Sensitivity\",\n\n  \"cleaning\": \"Teeth Cleaning\",\n  \"teeth cleaning\": \"Teeth Cleaning\",\n  \"dental cleaning\": \"Teeth Cleaning\",\n  \"scaling\": \"Teeth Cleaning\",\n\n  \"gum problem\": \"Gum Problem\",\n  \"gum pain\": \"Gum Problem\",\n  \"bleeding gums\": \"Gum Problem\",\n\n  \"root canal\": \"Root Canal Consultation\",\n  \"root canal treatment\": \"Root Canal Consultation\",\n  \"rct\": \"Root Canal Consultation\",\n  \"root canal consultation\": \"Root Canal Consultation\",\n\n  \"tooth extraction\": \"Tooth Extraction Consultation\",\n  \"extraction\": \"Tooth Extraction Consultation\",\n  \"remove tooth\": \"Tooth Extraction Consultation\",\n\n  \"broken tooth\": \"Broken Tooth / Dental Emergency\",\n  \"dental emergency\": \"Broken Tooth / Dental Emergency\",\n\n  \"implant\": \"Dental Implants Consultation\",\n  \"dental implant\": \"Dental Implants Consultation\",\n\n  \"braces\": \"Braces / Aligners Consultation\",\n  \"aligners\": \"Braces / Aligners Consultation\",\n\n  \"whitening\": \"Teeth Whitening / Cosmetic Consultation\",\n  \"teeth whitening\": \"Teeth Whitening / Cosmetic Consultation\",\n\n  \"child dental\": \"Child Dental Consultation\",\n  \"kids dental\": \"Child Dental Consultation\",\n\n  \"crown\": \"Dental Crown / Bridge Consultation\",\n  \"bridge\": \"Dental Crown / Bridge Consultation\"\n};\n\n\nconst normalizedTreatmentKey = treatment.toLowerCase().replace(/\\s+/g, \" \").trim();\n\nif (treatmentMap[normalizedTreatmentKey]) {\n  treatment = treatmentMap[normalizedTreatmentKey];\n}\n\n// Normalize Indian phone number\nconst normalizedPhone =\n  phone.startsWith(\"91\") && phone.length === 12\n    ? phone.slice(2)\n    : phone;\n\n// Name validation\nconst isNameValid =\n  name.length >= 3 && !/\\d/.test(name);\n\n// Phone validation\nconst isPhoneValid =\n  normalizedPhone.length === 10;\n\n// Date validation\nconst isDateValid = !!date;\n\n// Time validation\nconst isTimeValid = !!time;\n\n// Future date and time validation\nconst requestedDateTime = DateTime.fromISO(`${date}T${time}`);\nconst now = DateTime.now();\n\n// Minimum booking notice: 30 minutes\nconst minimumNoticeMinutes = 30;\n\nconst isFutureAppointment =\n  requestedDateTime.isValid &&\n requestedDateTime >= now.plus({ minutes: minimumNoticeMinutes });\n\n// Business hours validation: 9 AM to 9 PM\nconst hour = time\n  ? parseInt(time.split(\":\")[0], 10)\n  : null;\n\nconst isBusinessHour =\n  hour !== null &&\n  hour >= 9 &&\n  hour < 21;\n\n// Allowed treatments\nconst allowedTreatments = [\n  \"General Dental Checkup\",\n  \"Tooth Pain / Sensitivity\",\n  \"Teeth Cleaning\",\n  \"Gum Problem\",\n  \"Root Canal Consultation\",\n  \"Tooth Extraction Consultation\",\n  \"Broken Tooth / Dental Emergency\",\n  \"Dental Implants Consultation\",\n  \"Braces / Aligners Consultation\",\n  \"Teeth Whitening / Cosmetic Consultation\",\n  \"Child Dental Consultation\",\n  \"Dental Crown / Bridge Consultation\",\n  \"Other Dental Concern\"\n];\n\n// Appointment duration by treatment, in minutes\nconst treatmentDurations = {\n  \"general dental checkup\": 30,\n  \"tooth pain / sensitivity\": 30,\n  \"teeth cleaning\": 30,\n  \"gum problem\": 30,\n  \"root canal consultation\": 30,\n  \"tooth extraction consultation\": 30,\n  \"broken tooth / dental emergency\": 45,\n  \"dental implants consultation\": 30,\n  \"braces / aligners consultation\": 30,\n  \"teeth whitening / cosmetic consultation\": 30,\n  \"child dental consultation\": 30,\n  \"dental crown / bridge consultation\": 30,\n  \"other dental concern\": 30\n};\n\n// Validate treatment\nconst isTreatmentValid =\n  allowedTreatments.some(\n    t => t.toLowerCase() === treatment.toLowerCase()\n  );\n\n// Get duration only for recognised treatments\nconst appointmentDurationMinutes =\n  isTreatmentValid\n    ? treatmentDurations[treatment.toLowerCase()]\n    : null;\n\n// Final validation\nconst isValid =\n  isNameValid &&\n  isPhoneValid &&\n  isDateValid &&\n  isTimeValid &&\n  isFutureAppointment &&\n  isBusinessHour &&\n  isTreatmentValid;\n\nconst appointmentId =\n  `SDH-${DateTime.now().toFormat('yyyyLLdd')}-` +\n  Math.floor(1000 + Math.random() * 9000);\n\n\nreturn {\n  ...$json,\n  phone: normalizedPhone,\n  treatment,\n  isNameValid,\n  isPhoneValid,\n  isDateValid,\n  isTimeValid,\n  isFutureAppointment,\n  isBusinessHour,\n  isTreatmentValid,\n  appointmentId,\n  appointmentDurationMinutes,\n  isValid\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -1152
+      ],
+      "id": "fd7795a3-e9ce-4034-98d2-0ffead89023e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "11436c4a-4270-4fda-9115-1ef674d98372",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": "Is True",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        -1152
+      ],
+      "id": "0d976e66-875f-433e-81ce-c56e17c52e9e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE",
+          "mode": "list",
+          "cachedResultName": "Sowjanya Dental CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead ID": "={{ $('Code in JavaScript').item.json.appointmentId }}",
+            "Date Created": "={{ $now.toISO() }}",
+            "Patient Name": "={{ $json.patientName }}",
+            "Phone Number": "={{ $json.phone }}",
+            "Treatment": "={{ $json.treatment }}",
+            "Appointment Date": "={{ $json.appointmentDate }}",
+            "Appointment Time": "={{ $json.appointmentTime }}",
+            "Notes": "={{\n  !$json.isFutureAppointment\n    ? 'Appointment time is in the past or less than 30 minutes away'\n    : !$json.isBusinessHour\n    ? 'Outside Business Hours'\n    : !$json.isTreatmentValid\n    ? 'Treatment requires manual review'\n    : 'Invalid name, phone number, date, or time'\n}}",
+            "Status": "={{\n  !$json.isFutureAppointment\n    ? 'Rejected'\n    : !$json.isBusinessHour\n    ? 'Rejected'\n    : !$json.isTreatmentValid\n    ? 'Pending Review'\n    : 'Rejected'\n}}",
+            "Follow Up Required": "={{\n  !$json.isTreatmentValid ? 'Yes' : 'No'\n}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Lead ID",
+              "displayName": "Lead ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Created",
+              "displayName": "Date Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Treatment",
+              "displayName": "Treatment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Date",
+              "displayName": "Appointment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Time",
+              "displayName": "Appointment Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow Up Required",
+              "displayName": "Follow Up Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        -928
+      ],
+      "id": "dbbe3319-fc32-46da-b20f-5d5b0b6c5141",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rRft5XSZxxuLfj4l",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE",
+          "mode": "list",
+          "cachedResultName": "Sowjanya Dental CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Appointment Date",
+              "lookupValue": "={{ $json.appointmentDate }}"
+            },
+            {
+              "lookupColumn": "Appointment Time",
+              "lookupValue": "={{ $json.appointmentTime }}"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Booked"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -176,
+        -1392
+      ],
+      "id": "db494ab9-c464-46a5-b7a1-5b76d38f2f88",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rRft5XSZxxuLfj4l",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5e4446b8-0942-4ac8-9707-48b9c9569494",
+              "leftValue": "={{ !!$json[\"Phone Number\"] }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        272,
+        -1152
+      ],
+      "id": "972e3af5-1787-432f-b5ec-5b51d101f9fa",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE",
+          "mode": "list",
+          "cachedResultName": "Sowjanya Dental CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1nequ_kv_VsB8PtQc_hjeNw-3zV4kRNNWZ4EyvuTBGLE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Lead ID": "={{ $('Code in JavaScript').item.json.appointmentId }}",
+            "Date Created": "={{ $now.toISO() }}",
+            "Patient Name": "={{ $('Code in JavaScript').item.json.patientName }}",
+            "Phone Number": "={{ $('Code in JavaScript').item.json.phone }}",
+            "Treatment": "={{ $('Code in JavaScript').item.json.treatment }}",
+            "Appointment Date": "={{ $('Code in JavaScript').item.json.appointmentDate }}",
+            "Appointment Time": "={{ $('Code in JavaScript').item.json.appointmentTime }}",
+            "Follow Up Required": "={{ 'No' }}",
+            "Notes": "Requested time slot is already booked",
+            "Status": "Slot Unavailable"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Lead ID",
+              "displayName": "Lead ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Date Created",
+              "displayName": "Date Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Treatment",
+              "displayName": "Treatment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Date",
+              "displayName": "Appointment Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Appointment Time",
+              "displayName": "Appointment Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Follow Up Required",
+              "displayName": "Follow Up Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        464,
+        -1376
+      ],
+      "id": "be206faa-65aa-4a22-84d4-d42d77e645a7",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rRft5XSZxxuLfj4l",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"status\": \"slot_unavailable\",\n  \"message\": \"This appointment slot is already booked. Please choose a different time.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        -1376
+      ],
+      "id": "35e032ed-3f37-4b20-b261-6e0e25495424",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{\n  JSON.stringify({\n    status: \"success\",\n    message: \"Your appointment has been booked successfully.\",\n    appointmentId: $('Code in JavaScript').item.json.appointmentId,\n    patientName: $('Code in JavaScript').item.json.patientName,\n    treatment: $('Code in JavaScript').item.json.treatment,\n    appointmentDate: $('Code in JavaScript').item.json.appointmentDate,\n    appointmentTime: $('Code in JavaScript').item.json.appointmentTime\n  })\n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        912,
+        -1024
+      ],
+      "id": "3fc72927-340e-445e-beb7-00aa702a14fd",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -1392
+      ],
+      "id": "1f5de318-eca3-4c2b-a115-893b0faad227",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73202746-9548-47d5-b7fe-adcebd3e1231",
+              "name": "whatsappPhone",
+              "value": "={{ $('Code in JavaScript').item.json.phone }}",
+              "type": "string"
+            },
+            {
+              "id": "00056142-7550-434f-82cb-1ef74589277e",
+              "name": "whatsappMessage",
+              "value": "={{ 'Hello ' + $('Code in JavaScript').item.json.patientName + ', your appointment at Sowjanya Dental Hospital is confirmed for ' + $('Code in JavaScript').item.json.appointmentDate + ' at ' + $('Code in JavaScript').item.json.appointmentTime + '. Treatment/Concern: ' + $('Code in JavaScript').item.json.treatment + '. Appointment ID: ' + $('Code in JavaScript').item.json.appointmentId }}",
+              "type": "string"
+            },
+            {
+              "id": "e049dd67-24f7-4c06-a50b-ee12b9c15b26",
+              "name": "whatsappStatus",
+              "value": "Pending Setup",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        -720
+      ],
+      "id": "89734631-5ad6-4df8-b41a-3f09300e2df2",
+      "name": "Prepare WhatsApp Confirmation"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Create an event": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Prepare WhatsApp Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4b9f87aa-3f72-4317-aed3-fea01307d76f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a044d077ec7b4b2d403bcd35f1507668f3ba6f56ab8e428d18637af27124064f"
+  },
+  "nodeGroups": [],
+  "id": "uL5k2St9I8Dp5moc",
+  "tags": []
+}
